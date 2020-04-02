@@ -12,6 +12,7 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import { Redirect } from 'react-router-dom';
 
 function Copyright() {
     return (
@@ -51,103 +52,142 @@ export default class SignIn extends React.Component {
     constructor() {
         super();
         this.state = {
-            username: " ",
-            password: " "
+            email: " ",
+            password: "",
+            token: " "
         }
-        this.handleClicked = this.handleClicked.bind(this);
-        this.onEmailChange = this.onEmailChange.bind(this);
-        this.onPasswordChange = this.onPasswordChange.bind(this);
-
+        this.handleClick = this.handleClick.bind(this);
+        this.onEmailChanged = this.onEmailChanged.bind(this);
+        this.onPasswordChanged = this.onPasswordChanged.bind(this);
     }
 
-    handleClicked() {
+    handleClick() {
+        console.log("clicked")
         let opts = {
-            "username":this.state.username,
-            "password":this.state.password
-          };
-          console.log(opts)
+            "email": this.state.email,
+            "password": this.state.password
+        };
+        console.log(opts)
+        fetch('https://slcakes.herokuapp.com/api/login', {
+            method: 'post',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(opts)
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            console.log(data)
+            if (data.success == true) {
+                let token = data.token.split(" ")[1]
+                console.log(token)
+                localStorage.setItem("token", token)
+                //location.href = "/dashboard"
+                // Redirect to dashboard
+                console.log(token)
+                this.setState({
+                    token: token
+                })
+            }
+            else {
+
+            }
+        });
     }
 
-    onEmailChange(evt) {
-        console.log(this.state.username);
-        this.setState = {
-            username : evt.target.value
-        }
+    onEmailChanged(evt) {
+        console.log(this.state.email);
+        this.setState({
+            email: evt.target.value
+        })
     }
 
-    onPasswordChange(evt) {
+    onPasswordChanged(evt) {
         console.log(this.state.password)
-        this.setState = {
-            password : evt.target.value
-        }
+        this.setState({
+            password: evt.target.value
+        })
     }
 
     render() {
-        return (
-            <Container component="main" maxWidth="xs">
-                <CssBaseline />
-                <div >
-                    <Avatar >
-                        <LockOutlinedIcon />
-                    </Avatar>
-                    <Typography component="h1" variant="h5">
-                        Sign in
-            </Typography>
-                    <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="email"
-                        label="Email Address"
-                        name="email"
-                        autoComplete="email"
-                        onChange={this.onEmailChange}
-                        autoFocus
-                    />
-                    <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="password"
-                        label="Password"
-                        type="password"
-                        id="password"
-                        onChange={this.onPasswordChange}
-                        autoComplete="current-password"                        
-                    />
-                    <FormControlLabel
-                        control={<Checkbox value="remember" color="primary" />}
-                        label="Remember me"
-                    />
-                    <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        color="primary"
-                        onClick={this.handleClicked}
-                    >
-                        Sign In
-              </Button>
-                    <Grid container>
-                        <Grid item xs>
-                            <Link href="#" variant="body2">
-                                Forgot password?
-                  </Link>
-                        </Grid>
-                        <Grid item>
-                            <Link href="#" variant="body2">
-                                {"Don't have an account? Sign Up"}
-                            </Link>
-                        </Grid>
-                    </Grid>
-                </div>
-                <Box mt={8}>
-                    <Copyright />
-                </Box>
-            </Container>
-        );
-    }
+        if (this.state.token) {
+            return (
+                <Redirect to={{
+                    pathname: "/dashboard"
+                }}
+                />
+            );
+        }
+        else {
 
+            return (
+                <Container component="main" maxWidth="xs">
+                    <CssBaseline />
+                    <div >
+                        <Avatar >
+                            <LockOutlinedIcon />
+                        </Avatar>
+                        <Typography component="h1" variant="h5">
+                            Sign in
+            </Typography>
+                        <TextField
+                            variant="outlined"
+                            margin="normal"
+                            required
+                            fullWidth
+                            value={this.state.email}
+                            id="email"
+                            label="Email Address"
+                            name="email"
+                            autoComplete="email"
+                            onChange={this.onEmailChanged}
+                            autoFocus
+                        />
+                        <TextField
+                            variant="outlined"
+                            margin="normal"
+                            required
+                            fullWidth
+                            value={this.state.password}
+                            name="password"
+                            label="Password"
+                            type="password"
+                            id="password"
+                            onChange={this.onPasswordChanged}
+                            autoComplete="current-password"
+                        />
+                        <FormControlLabel
+                            control={<Checkbox value="remember" color="primary" />}
+                            label="Remember me"
+                        />
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            color="primary"
+                            onClick={this.handleClick}
+                        >
+                            Sign In
+              </Button>
+                        <Grid container>
+                            <Grid item xs>
+                                <Link href="#" variant="body2">
+                                    Forgot password?
+                  </Link>
+                            </Grid>
+                            <Grid item>
+                                <Link href="#" variant="body2">
+                                    {"Don't have an account? Sign Up"}
+                                </Link>
+                            </Grid>
+                        </Grid>
+                    </div>
+                    <Box mt={8}>
+                        <Copyright />
+                    </Box>
+                </Container>
+            )
+        }
+    };
 }
